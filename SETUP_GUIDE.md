@@ -29,9 +29,10 @@ This script will:
 1. Install WireGuard
 2. Generate server and client key pairs
 3. Create the server configuration
-4. Enable IP forwarding
-5. Start the WireGuard tunnel
-6. Output the client config for Windows
+4. Configure UFW firewall (forward rules, MASQUERADE, ports)
+5. Enable IP forwarding
+6. Start the WireGuard tunnel
+7. Output the client config for Windows
 
 ### Step 2: Install Ubuntu Desktop (if not already installed)
 ```bash
@@ -115,17 +116,12 @@ If mstsc doesn't work well:
 sudo wg show
 sudo journalctl -u wg-quick@wg0 -f
 
-# Check iptables rules
-sudo iptables -L -n -v
+# Check UFW status and rules
+sudo ufw status verbose
 
 # Restart WireGuard
 sudo wg-quick down wg0
 sudo wg-quick up wg0
-
-# Check if port 51820 is open
-sudo ufw status
-# OR
-sudo iptables -L INPUT -n -v
 ```
 
 ### Windows side
@@ -150,11 +146,19 @@ mstsc /v:10.200.0.1
 
 ## Firewall Configuration
 
-### UFW (Ubuntu)
+### UFW (Ubuntu) — handled automatically by setup script
+The setup script configures UFW with:
+- `DEFAULT_FORWARD_POLICY=ACCEPT` (allows VPN forwarding)
+- MASQUERADE NAT rule in `/etc/ufw/before.rules`
+- `ufw allow 51820/udp` (WireGuard port)
+- `ufw allow 3389/tcp` (RDP)
+
+Manual management:
 ```bash
-sudo ufw allow 51820/udp   # WireGuard
-sudo ufw allow 3389/tcp    # RDP/xrdp
-sudo ufw enable
+sudo ufw status verbose          # View all rules
+sudo ufw allow 51820/udp         # WireGuard port
+sudo ufw allow 3389/tcp          # RDP port
+sudo ufw delete allow 51820/udp  # Remove rule
 ```
 
 ### Windows Firewall (if needed)
