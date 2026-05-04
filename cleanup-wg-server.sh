@@ -47,9 +47,21 @@ rm -f /etc/wireguard/client-public.key
 echo "Done."
 
 # Uninstall WireGuard package
-echo "[6/6] Removing WireGuard package..."
+echo "[6/7] Removing WireGuard package..."
 apt-get remove --purge -y wireguard wireguard-tools 2>/dev/null || true
 apt-get autoremove -y 2>/dev/null || true
+echo "Done."
+
+# Revert sysctl changes
+echo "[7/7] Reverting sysctl changes..."
+if [ -f /etc/sysctl.conf ]; then
+    sed -i '/^net.ipv4.ip_forward=1$/d' /etc/sysctl.conf
+    sed -i 's/^#net.ipv4.ip_forward=1$/net.ipv4.ip_forward=0/' /etc/sysctl.conf 2>/dev/null || true
+    sysctl -p 2>/dev/null || true
+    echo "  Cleaned sysctl.conf"
+else
+    echo "  No sysctl.conf found, skipping"
+fi
 echo "Done."
 
 echo ""

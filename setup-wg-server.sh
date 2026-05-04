@@ -92,9 +92,13 @@ echo "Done."
 
 # 6. Enable IP forwarding
 echo "[6/7] Enabling IP forwarding..."
+if [ ! -f /etc/sysctl.conf ]; then
+    touch /etc/sysctl.conf
+    echo "  Created /etc/sysctl.conf"
+fi
 sed -i 's/#net.ipv4.ip_forward=1/net.ipv4.ip_forward=1/' /etc/sysctl.conf
-echo "net.ipv4.ip_forward=1" >> /etc/sysctl.conf 2>/dev/null || true
-sysctl -p
+grep -q '^net.ipv4.ip_forward=1$' /etc/sysctl.conf || echo "net.ipv4.ip_forward=1" >> /etc/sysctl.conf
+sysctl -p 2>/dev/null || true
 
 # 7. Start WireGuard
 echo "[7/7] Starting WireGuard server..."
