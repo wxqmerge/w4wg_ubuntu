@@ -1,10 +1,14 @@
 #!/bin/bash
 # cleanup-wg-server.sh - Remove all WireGuard settings from Ubuntu server (UFW)
-# Run with: sudo bash cleanup-wg-server.sh
+# Run with: sudo bash cleanup-wg-server.sh [port]
+# Default port: 51820
 
 set -e
 
+WIREGUARD_PORT="${1:-51820}"
+
 echo "=== WireGuard Server Cleanup ==="
+echo "Using port: $WIREGUARD_PORT"
 
 # 1. Stop and disable WireGuard service
 echo "[1/7] Stopping WireGuard service..."
@@ -43,7 +47,7 @@ echo "Done."
 
 # 4. Remove UFW rules for WireGuard and RDP
 echo "[4/7] Removing UFW rules..."
-ufw delete allow 51820/udp 2>/dev/null || true
+ufw delete allow ${WIREGUARD_PORT}/udp 2>/dev/null || true
 ufw delete allow 3389/tcp 2>/dev/null || true
 ufw delete allow in on wg0 2>/dev/null || true
 ufw delete route allow in on wg0 out on eth0 2>/dev/null || true

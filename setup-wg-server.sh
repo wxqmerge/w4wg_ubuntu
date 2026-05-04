@@ -1,10 +1,22 @@
 #!/bin/bash
 # setup-wg-server.sh - WireGuard Server Setup Script for Ubuntu
-# Run with: sudo bash setup-wg-server.sh
+# Run with: sudo bash setup-wg-server.sh [port]
+# Default port: 51820
 
 set -e
 
+WIREGUARD_PORT="${1:-51820}"
+
+# Validate port
+if ! [[ "$WIREGUARD_PORT" =~ ^[0-9]+$ ]] || [ "$WIREGUARD_PORT" -lt 1 ] || [ "$WIREGUARD_PORT" -gt 65535 ]; then
+    echo "Error: Invalid port number. Must be between 1 and 65535."
+    echo "Usage: sudo bash $0 [port]"
+    echo "Example: sudo bash $0 51820"
+    exit 1
+fi
+
 echo "=== WireGuard Server Setup for Ubuntu ==="
+echo "Using port: $WIREGUARD_PORT"
 
 # 1. Install WireGuard
 echo "[1/7] Installing WireGuard..."
@@ -42,7 +54,7 @@ echo "[4/7] Creating server configuration..."
 cat > /etc/wireguard/wg0.conf <<EOF
 [Interface]
 Address = 10.200.0.1/24
-ListenPort = 51820
+ListenPort = ${WIREGUARD_PORT}
 PrivateKey = ${SERVER_PRIVATE_KEY}
 PostUp = ufw route allow in on wg0 out on eth0; ufw route allow in on eth0 out on wg0; ufw allow in on wg0
 PostDown = ufw route deny in on wg0 out on eth0; ufw route deny in on eth0 out on wg0
@@ -77,7 +89,7 @@ UFW_NAT
 fi
 
 # Allow WireGuard and RDP ports
-ufw allow 51820/udp 2>/dev/null || true
+ufw allow ${WIREGUARD_PORT}/udp 2>/dev/null || true
 ufw allow 3389/tcp 2>/dev/null || true
 
 # Enable UFW if not already enabled
@@ -122,7 +134,7 @@ DNS = 8.8.8.8
 [Peer]
 PublicKey = ${SERVER_PUBLIC_KEY}
 AllowedIPs = 0.0.0.0/0
-Endpoint = <YOUR_SERVER_PUBLIC_IP>:51820
+Endpoint = <YOUR_SERVER_PUBLIC_IP>:${WIREGUARD_PORT}
 PersistentKeepalive = 21
 
 EOF

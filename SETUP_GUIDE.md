@@ -22,7 +22,12 @@ Windows Client (10.200.0.2) <--WireGuard VPN--> Ubuntu Server (10.200.0.1)
 
 ### Step 1: Run the setup script
 ```bash
-sudo bash setup-wg-server.sh
+sudo bash setup-wg-server.sh [port]
+```
+Optional: specify a custom port (default: 51820)
+```bash
+sudo bash setup-wg-server.sh 51820
+sudo bash setup-wg-server.sh 1194
 ```
 
 This script will:
